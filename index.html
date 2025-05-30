@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-M">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador Interactivo: Alternativas Avanzadas a RAG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Application Structure Plan: 
+        La SPA está organizada en secciones temáticas navegables desde una barra superior fija. 
+        1.  Inicio: Bienvenida y panorama general.
+        2.  Desafíos RAG: Problemas del RAG tradicional.
+        3.  Soluciones Avanzadas: Foco en GraphRAG, otras estrategias y comparativa.
+        4.  Optimización y Eficiencia: Manejo de contexto largo y tokens.
+        5.  Fidelidad Fáctica: Cómo evitar invenciones.
+        6.  Extracción de PDFs: Técnicas y herramientas.
+        7.  Proceso de Generación: Flujo de creación de cursos.
+        8.  Conclusiones: Resumen y futuro.
+        Este diseño temático, en lugar de un espejo del informe, busca facilitar la comprensión progresiva y la exploración interactiva de conceptos clave, como las ventajas de GraphRAG y el proceso de generación. Se utilizan elementos como acordeones y diagramas simplificados para mejorar la digestibilidad del contenido técnico.
+    -->
+    <!-- Visualization & Content Choices:
+        -   Diagrama Componentes GraphRAG: HTML/CSS para ilustrar el flujo (Informar/Organizar).
+        -   Tabla Comparativa (Tabla 1 del informe): HTML interactivo para resaltar filas/columnas (Comparar/Informar).
+        -   Gráfico Comparativo (Fortalezas Enfoques): Chart.js (barra) para comparar GraphRAG vs. Ajuste Fino en estructura vs. conocimiento implícito (Comparar).
+        -   Técnicas Contexto Largo (Tabla 2 del informe): HTML interactivo (Informar).
+        -   Herramientas PDF (Tabla 3 del informe): HTML interactivo (Informar).
+        -   Flujo Proceso Generación: Diagrama HTML/CSS/JS clickeable para mostrar detalles de cada fase (Organizar/Informar).
+        -   Contenido textual: Párrafos introductorios y explicaciones en cada sección, con acordeones para detalles extensos (Informar).
+        -   Iconos: Caracteres Unicode simples (e.g., ▼, ►) para interactividad.
+        Justificación: Se prioriza la claridad y la interacción. Las tablas del informe son ricas y se vuelven interactivas. Los diagramas y gráficos simplifican conceptos complejos. Se evita SVG/Mermaid.
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; /* Asumiendo que Inter es una fuente deseada, similar a la directiva */
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .nav-link.active {
+            font-weight: bold;
+            color: #15803d; /* green-700 */
+            border-bottom: 2px solid #15803d;
+        }
+        .accordion-content {
+            display: none;
+            transition: max-height 0.2s ease-out;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Tailwind max-w-2xl */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 400px; /* Max height */
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .table-interactive th, .table-interactive td {
+            border: 1px solid #e5e7eb; /* gray-200 */
+            padding: 8px;
+            text-align: left;
+        }
+        .table-interactive th {
+            background-color: #f3f4f6; /* gray-100 */
+        }
+        .highlight {
+            background-color: #d1fae5 !important; /* green-100 */
+        }
+        .flowchart-step {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .flowchart-step:hover {
+            transform: scale(1.05);
+        }
+        .flowchart-details {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-neutral-100 text-neutral-800">
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <h1 class="text-2xl font-bold text-green-700">Alternativas Avanzadas a RAG</h1>
+                <div class="flex flex-wrap mt-3 md:mt-0 space-x-2 md:space-x-4" id="nav-links">
+                    <a href="#inicio" class="nav-link px-3 py-2 rounded-md text-sm hover:bg-green-50">Inicio</a>
+                    <a href="#desafios" class="nav-link px-3 py-2 rounded-md text-sm hover:bg-green-50">Desafíos RAG</a>
+                    <a href="#soluciones" class="nav-link px-3 py-2 rounded-md text-sm hover:bg-green-50">Soluciones</a>
+                    <a href="#optimizacion" class="nav-link px-3 py-2 rounded-md text-sm hover:bg-green-50">Optimización</a>
+                    <a href="#fidelidad" class="nav-link px-3 py-2 rounded-md text-sm hover:bg-green-50">Fidelidad</a>
+                    <a href="#extraccion" class="nav-link px-3 py-2 rounded-md text-sm hover:bg-green-50">Extracción PDF</a>
+                    <a href="#proceso" class="nav-link px-3 py-2 rounded-md text-sm hover:bg-green-50">Proceso</a>
+                    <a href="#conclusiones" class="nav-link px-3 py-2 rounded-md text-sm hover:bg-green-50">Conclusiones</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+        <section id="inicio" class="content-section active">
+            <h2 class="text-3xl font-semibold text-green-700 mb-6">Bienvenido al Explorador Interactivo</h2>
+            <p class="mb-4 text-lg">Esta aplicación te permitirá explorar de manera interactiva las alternativas avanzadas a los sistemas de Generación Aumentada por Recuperación (RAG) para la creación automatizada de cursos a gran escala, basándose en el informe proporcionado. El objetivo es facilitar la comprensión de las nuevas metodologías y cómo superan las limitaciones de los enfoques tradicionales.</p>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xl font-semibold text-green-600 mb-3">El Problema Central</h3>
+                <p class="mb-2">La creación de cursos educativos de alta calidad y actualizados a partir de extensas colecciones de documentos académicos es un desafío considerable. Los sistemas RAG tradicionales, aunque útiles, a menudo fallan en capturar la estructura lógica y las relaciones conceptuales profundas necesarias para un curso coherente.</p>
+                <p class="font-semibold">Este explorador se enfoca en GraphRAG como una solución principal, junto con otras técnicas de vanguardia para la ingesta de datos, eficiencia de tokens y garantía de fidelidad fáctica.</p>
+            </div>
+        </section>
+
+        <section id="desafios" class="content-section">
+            <h2 class="text-3xl font-semibold text-green-700 mb-6">Desafíos del RAG Tradicional</h2>
+            <p class="mb-4 text-lg">Los sistemas convencionales de Generación Aumentada por Recuperación (RAG) se basan principalmente en la similitud vectorial para recuperar fragmentos de texto. Si bien esto es efectivo para respuestas directas, presenta limitaciones significativas al generar contenido estructurado y complejo como un curso educativo.</p>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-green-600 mb-2">Limitaciones Clave:</h3>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong class="font-medium">Falta de Comprensión Estructural:</strong> Dificultad para capturar relaciones jerárquicas y lógicas entre conceptos.</li>
+                        <li><strong class="font-medium">Conocimiento Fragmentado:</strong> Puede resultar en información desconectada y falta de flujo narrativo.</li>
+                        <li><strong class="font-medium">Dependencia de Similitud Semántica:</strong> No siempre identifica las conexiones más relevantes para una secuencia pedagógica.</li>
+                        <li><strong class="font-medium">Riesgo de Invenciones:</strong> La falta de un contexto relacional profundo puede llevar a que el LLM "invente" información para llenar vacíos.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow flex flex-col items-center justify-center">
+                     <span class="text-6xl mb-4">🧩</span>
+                    <p class="text-center font-medium">El RAG tradicional puede entregar piezas relevantes, pero ensamblar el rompecabezas de un curso coherente requiere más que solo similitud.</p>
+                </div>
+            </div>
+            <p class="mt-6 text-md">Un curso es más que una colección de hechos; es una narrativa construida sobre conexiones lógicas. La necesidad de superar estas limitaciones impulsa la búsqueda de alternativas como GraphRAG, que modela el conocimiento como una red de conceptos interconectados.</p>
+        </section>
+
+        <section id="soluciones" class="content-section">
+            <h2 class="text-3xl font-semibold text-green-700 mb-6">Soluciones de Vanguardia</h2>
+            <p class="mb-6 text-lg">Para superar las limitaciones del RAG tradicional, emergen enfoques más sofisticados que integran conocimiento estructurado y optimizan la interacción con los LLMs. GraphRAG se destaca como una alternativa principal.</p>
+
+            <div class="accordion bg-white p-4 rounded-lg shadow mb-6">
+                <button class="accordion-toggle flex justify-between items-center w-full text-left text-xl font-semibold text-green-600 py-2">
+                    <span>Generación Aumentada por Recuperación Basada en Grafos (GraphRAG)</span>
+                    <span class="accordion-icon text-green-700 text-2xl">►</span>
+                </button>
+                <div class="accordion-content mt-2 text-neutral-700">
+                    <p class="mb-3">GraphRAG integra Grafos de Conocimiento (KGs) en el flujo de trabajo de los LLMs, organizando la información como una red de entidades (nodos) y sus relaciones (aristas). Esto permite un razonamiento relacional más profundo, crucial para la generación de cursos estructurados.</p>
+                    <p class="mb-3"><strong class="font-medium">Ventaja Principal:</strong> Capacidad de recuperar información basada en consultas complejas que atraviesan relaciones, no solo similitud semántica. Esto resulta en cursos fácticamente sólidos y lógicamente coherentes.</p>
+                    
+                    <h4 class="text-lg font-semibold text-green-500 mt-4 mb-2">Componentes Clave de GraphRAG:</h4>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        <div class="border border-green-200 p-3 rounded-md bg-green-50"><strong>1. Procesador de Consultas:</strong> Identifica entidades/relaciones en la consulta y las mapea al grafo.</div>
+                        <div class="border border-green-200 p-3 rounded-md bg-green-50"><strong>2. Recuperador:</strong> Localiza y extrae contenido del grafo usando señales semánticas y estructurales (ej. GNNs).</div>
+                        <div class="border border-green-200 p-3 rounded-md bg-green-50"><strong>3. Organizador:</strong> Refina los datos del grafo (poda, reordena) para el LLM.</div>
+                        <div class="border border-green-200 p-3 rounded-md bg-green-50"><strong>4. Generador (LLM):</strong> Combina la información estructurada para producir la salida.</div>
+                    </div>
+                    <p class="mb-3"><strong class="font-medium">Impacto:</strong> Reduce alucinaciones, mejora la precisión fáctica y permite una IA más explicable.</p>
+                    
+                    <h4 class="text-lg font-semibold text-green-500 mt-4 mb-2">Marcos y Kits de Herramientas GraphRAG Destacados:</h4>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><strong>Amazon Neptune GraphRAG Toolkit:</strong> Automatiza la construcción de grafos con incrustaciones vectoriales. Organiza el grafo en niveles (linaje, resumen, entidad-relación).</li>
+                        <li><strong>LlamaIndex GraphRAG:</strong> Combina RAG con Sumarización Enfocada en Consultas (QFS) para manejar consultas complejas sobre grandes conjuntos de datos.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion bg-white p-4 rounded-lg shadow mb-6">
+                <button class="accordion-toggle flex justify-between items-center w-full text-left text-xl font-semibold text-green-600 py-2">
+                    <span>Otras Estrategias y Ajuste Fino (Fine-tuning)</span>
+                    <span class="accordion-icon text-green-700 text-2xl">►</span>
+                </button>
+                <div class="accordion-content mt-2 text-neutral-700">
+                    <p class="mb-3"><strong class="font-medium">Recuperación Híbrida:</strong> Combina la recuperación basada en grafos con la similitud semántica vectorial tradicional para capturar tanto relaciones estructurales explícitas como matices semánticos implícitos.</p>
+                    <p class="mb-3"><strong class="font-medium">Ajuste Fino con Conocimiento a Nivel de Nodo:</strong> Imbuye al LLM con una comprensión internalizada de conceptos y relaciones específicas del dominio, reduciendo la dependencia de búsquedas externas. Ej: SimRAG.</p>
+                    <p class="mb-3">Un <strong class="font-medium">enfoque híbrido</strong> es ideal: GraphRAG para recuperación dinámica y fundamentación fáctica, y ajuste fino para incrustar experiencia profunda en el LLM. Esto lleva a una generación de cursos más precisa y pedagógicamente sólida.</p>
+                     <div class="chart-container my-4">
+                        <canvas id="enfoquesChart"></canvas>
+                    </div>
+                    <p class="text-sm text-center text-neutral-600">Gráfico conceptual: Comparación de fortalezas relativas.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xl font-semibold text-green-600 mb-3">Tabla 1: Comparación de Alternativas a RAG</h3>
+                 <p class="mb-4 text-sm text-neutral-600">Haz clic en las cabeceras para resaltar columnas o en las filas para resaltar enfoques.</p>
+                <div class="overflow-x-auto">
+                    <table id="table1" class="w-full table-interactive">
+                        <thead>
+                            <tr>
+                                <th>Enfoque</th>
+                                <th>Mecanismo Central</th>
+                                <th>Fortalezas (Generación Cursos)</th>
+                                <th>Limitaciones (Generación Cursos)</th>
+                                <th>Soporte Salida Estructurada</th>
+                                <th>Precisión Fáctica / Mitigación Alucinaciones</th>
+                                <th>Marcos/Docs Clave (2024-2025)</th>
+                                <th>Soporte PDF</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>RAG Tradicional</td>
+                                <td>Búsqueda similitud vectorial</td>
+                                <td>Acceso conocimiento amplio/actualizado</td>
+                                <td>Fallo captura relaciones profundas/jerárquicas; riesgo alucinaciones</td>
+                                <td>Requiere esfuerzo LLM; sin guía estructural</td>
+                                <td>Depende calidad recuperación/LLM; mayor riesgo</td>
+                                <td>LangChain, LlamaIndex (base), Haystack</td>
+                                <td>Sí, cargadores básicos (puede perder estructura)</td>
+                            </tr>
+                            <tr>
+                                <td>GraphRAG</td>
+                                <td>Construcción/recorrido KGs</td>
+                                <td>Razonamiento relacional superior; comprensión interconexiones; reducción alucinaciones</td>
+                                <td>Creación/mantenimiento KG intensivo; escalabilidad grafos grandes</td>
+                                <td>Guía inherente estructura (linaje, resumen, entidad-relación); grafo ES estructura</td>
+                                <td>Muy alta; KGs validan/refinan; reduce alucinaciones</td>
+                                <td>Amazon Neptune GRAG Toolkit, LlamaIndex GRAG, OG-RAG, GRAG, StructuGraphRAG</td>
+                                <td>Sí, con enfoque en extracción entidades/relaciones</td>
+                            </tr>
+                            <tr>
+                                <td>Ajuste Fino (Fine-tuning)</td>
+                                <td>Incorporación conocimiento en parámetros modelo</td>
+                                <td>Conocimiento profundo "experto"; maneja matices implícitos</td>
+                                <td>Costo computacional alto; conocimiento estático; riesgo olvido catastrófico</td>
+                                <td>Puede generar si entrena con datos estructurados</td>
+                                <td>Depende calidad datos entrenamiento; puede alucinar</td>
+                                <td>SimRAG, OpenReviewer, Small Language Graph (SLG)</td>
+                                <td>Requiere preprocesamiento PDF para datos entrenamiento</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="optimizacion" class="content-section">
+            <h2 class="text-3xl font-semibold text-green-700 mb-6">Optimización de Escala y Eficiencia</h2>
+            <p class="mb-6 text-lg">Abordar la carga de grandes cantidades de información y el uso eficiente de tokens es crucial. Las innovaciones en LLMs de contexto largo y su evaluación son clave.</p>
+
+            <div class="accordion bg-white p-4 rounded-lg shadow mb-6">
+                <button class="accordion-toggle flex justify-between items-center w-full text-left text-xl font-semibold text-green-600 py-2">
+                    <span>Procesamiento Avanzado de Contexto Largo</span>
+                    <span class="accordion-icon text-green-700 text-2xl">►</span>
+                </button>
+                <div class="accordion-content mt-2 text-neutral-700">
+                    <p class="mb-3">Aunque los LLMs amplían sus ventanas de contexto, un tamaño grande no garantiza rendimiento. El rendimiento puede degradarse con prompts largos, y métricas como la Perplejidad (PPL) son poco fiables para evaluar capacidades de contexto largo.</p>
+                    <ul class="list-disc list-inside space-y-3">
+                        <li><strong class="font-medium">LongPPL (Perplejidad de Contexto Largo):</strong> Métrica (arXiv 2024, ICLR 2025) que se enfoca en "tokens clave" cuya generación mejora con contexto largo. Usa un método contrastivo y calcula "Diferencia Largo-Corto (LSD)" para identificar dependencia de contexto largo. Más precisa y fiable.</li>
+                        <li><strong class="font-medium">LongCE (Entropía Cruzada de Contexto Largo) Loss:</strong> Estrategia de reponderación (ICLR 2025) para ajuste fino. Asigna pesos mayores a "tokens clave", guiando el aprendizaje del modelo. Mejora rendimiento hasta 22% en LongEval.</li>
+                        <li><strong class="font-medium">Star Attention:</strong> Aproximación de bloques dispersos (arXiv 2024) para inferencia eficiente. Reduce memoria y tiempo de inferencia (hasta 11x) manteniendo precisión. Divide contexto en bloques (codificación local) y luego atención global para consulta/respuesta. Escala linealmente con hosts.</li>
+                    </ul>
+                    <p class="mt-3"><strong class="font-medium">Conclusión:</strong> Se requiere entrenamiento especializado (LongCE) y arquitecturas eficientes (Star Attention) para dominar el contexto largo.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xl font-semibold text-green-600 mb-3">Tabla 2: Técnicas para Procesamiento Eficiente de LLM de Contexto Largo</h3>
+                <p class="mb-4 text-sm text-neutral-600">Interactúa con la tabla para explorar las técnicas.</p>
+                <div class="overflow-x-auto">
+                     <table id="table2" class="w-full table-interactive">
+                        <thead>
+                            <tr>
+                                <th>Técnica</th>
+                                <th>Propósito Principal</th>
+                                <th>Mecanismo Central</th>
+                                <th>Beneficios (Docs Grandes)</th>
+                                <th>Docs Relevantes (Año)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>LongPPL</td>
+                                <td>Evaluación Contexto Largo</td>
+                                <td>Enfoca en "tokens clave"; método contrastivo largo-corto</td>
+                                <td>Evaluación más precisa/fiable que PPL estándar</td>
+                                <td>arXiv 2024, ICLR 2025</td>
+                            </tr>
+                            <tr>
+                                <td>LongCE Loss</td>
+                                <td>Ajuste Fino Contexto Largo</td>
+                                <td>Reponderación: pesos mayores a "tokens clave"</td>
+                                <td>Mejora rendimiento (hasta 22%); optimiza eficiencia entrenamiento</td>
+                                <td>arXiv 2024, ICLR 2025</td>
+                            </tr>
+                             <tr>
+                                <td>Star Attention</td>
+                                <td>Optimización Inferencia Contexto Largo</td>
+                                <td>Bloques dispersos: codificación local distribuida, generación global</td>
+                                <td>Reduce memoria/tiempo (11x); alta precisión; escalabilidad lineal</td>
+                                <td>arXiv 2024</td>
+                            </tr>
+                            <tr>
+                                <td>Ring Attention</td>
+                                <td>Optimización Inferencia Distribuida</td>
+                                <td>Atención distribuida: circula cache KV entre hosts</td>
+                                <td>Escala inferencia en GPUs; para contextos muy largos</td>
+                                <td>Liu et al., 2024a</td>
+                            </tr>
+                            <tr>
+                                <td>StreamingLLM</td>
+                                <td>Optimización Inferencia Contexto Largo</td>
+                                <td>Atención dispersa: tokens sink globales + ventana deslizante</td>
+                                <td>Reduce costo computacional manteniendo rendimiento</td>
+                                <td>2024b</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="fidelidad" class="content-section">
+            <h2 class="text-3xl font-semibold text-green-700 mb-6">Garantía de la Fidelidad Fáctica</h2>
+            <p class="mb-6 text-lg">Asegurar que el contenido generado sea fiel a las fuentes ("no inventar nada") es primordial. Los Grafos de Conocimiento (KGs) y una ingeniería de prompts efectiva son cruciales.</p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-green-600 mb-3">Rol de los Grafos de Conocimiento (KGs):</h3>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong class="font-medium">Conocimiento de Fondo:</strong> Repositorio de hechos verificados para fundamentar respuestas.</li>
+                        <li><strong class="font-medium">Guías de Razonamiento:</strong> Ofrecen información precisa y conexiones lógicas (offline, online, basadas en agentes).</li>
+                        <li><strong class="font-medium">Refinadores y Validadores:</strong> Verifican respuestas generadas contra hechos, filtrando y mejorando precisión.</li>
+                    </ul>
+                    <p class="mt-3">Un sistema robusto integra KGs para fundamentación pre-generación, verificación durante la generación y validación post-generación.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-semibold text-green-600 mb-3">Ingeniería de Prompts y Autocorrección:</h3>
+                     <ul class="list-disc list-inside space-y-2">
+                        <li><strong class="font-medium">Instrucciones Explícitas Anti-Alucinación:</strong> "Hable solo sobre elementos del grafo..."</li>
+                        <li><strong class="font-medium">Instrucción de Autocorrección:</strong> "Valide cada hecho escrito y corríjalo..."</li>
+                        <li><strong class="font-medium">Prompting de Cadena de Pensamiento (CoT):</strong> "Pensar paso a paso..." para rastrear generación a fuentes.</li>
+                        <li><strong class="font-medium">Aprendizaje de Pocas Tomas (Few-Shot):</strong> Ejemplos de traducciones Grafo-Texto de alta calidad.</li>
+                    </ul>
+                    <p class="mt-3"><strong class="font-medium">Métricas Clave:</strong> AlignScore para detectar inconsistencia fáctica, superando métricas tradicionales como BLEU.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="extraccion" class="content-section">
+            <h2 class="text-3xl font-semibold text-green-700 mb-6">Extracción Robusta de Información de PDFs Académicos</h2>
+            <p class="mb-6 text-lg">El soporte para PDFs y la no pérdida de información son esenciales. Los documentos académicos son complejos (tablas, figuras, fórmulas, orden de lectura), desafiando el análisis simple.</p>
+            
+            <div class="accordion bg-white p-4 rounded-lg shadow mb-6">
+                <button class="accordion-toggle flex justify-between items-center w-full text-left text-xl font-semibold text-green-600 py-2">
+                    <span>Herramientas y Metodologías de Análisis PDF (2024-2025)</span>
+                    <span class="accordion-icon text-green-700 text-2xl">►</span>
+                </button>
+                <div class="accordion-content mt-2 text-neutral-700">
+                    <p class="mb-3">Se requieren métodos que comprendan la estructura visual y textual.</p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong class="font-medium">Métodos Multimodales:</strong> Superan enfoques tradicionales, aprovechando señales visuales y textuales.</li>
+                        <li><strong class="font-medium">ÉCLAIR (arXiv 2025):</strong> SOTA en benchmark de orden de lectura (DROBS), extracción de datos de alta calidad para LLM.</li>
+                        <li><strong class="font-medium">OmniDocBench (arXiv 2024):</strong> Benchmark para evaluación integral de análisis de documentos (artículos, libros).</li>
+                        <li><strong class="font-medium">VLM Generales (GPT-4o, Qwen2-VL-72B):</strong> Rendimiento competitivo en extracción de texto, fórmulas, tablas.</li>
+                        <li><strong class="font-medium">Small Language Graph (SLG) (arXiv 2025):</strong> Su preparación de datos implica chunking inteligente por subsecciones, creando "conocimiento aislado".</li>
+                    </ul>
+                     <p class="mt-3"><strong class="font-medium">Clave:</strong> Convergencia de multimodalidad y extracción estructurada. VLM y chunking consciente de la estructura son fundamentales.</p>
+                </div>
+            </div>
+
+            <div class="accordion bg-white p-4 rounded-lg shadow mb-6">
+                <button class="accordion-toggle flex justify-between items-center w-full text-left text-xl font-semibold text-green-600 py-2">
+                    <span>Estrategias de Chunking y Preparación de Datos</span>
+                    <span class="accordion-icon text-green-700 text-2xl">►</span>
+                </button>
+                <div class="accordion-content mt-2 text-neutral-700">
+                    <ul class="list-disc list-inside space-y-2">
+                         <li><strong class="font-medium">Chunking Estructurado (Semántico):</strong> Dividir texto por subsecciones (enfoque SLG) para unidades lógicas, evitando superposición de datos y alucinaciones.</li>
+                        <li><strong class="font-medium">Generación de Pares Pregunta-Respuesta:</strong> Usar LLMs grandes para crear Q&A de alta calidad desde chunks para ajuste fino o KGs.</li>
+                        <li><strong class="font-medium">Deduplicación y Filtrado:</strong> Eliminar redundancia para un conjunto de datos limpio.</li>
+                    </ul>
+                    <p class="mt-3">El chunking semánticamente consciente es superior al arbitrario para integridad, eficiencia de tokens y reducción de alucinaciones.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xl font-semibold text-green-600 mb-3">Tabla 3: Herramientas de Análisis de PDF de Vanguardia</h3>
+                <p class="mb-4 text-sm text-neutral-600">Explora las diferentes herramientas y sus capacidades.</p>
+                <div class="overflow-x-auto">
+                    <table id="table3" class="w-full table-interactive">
+                        <thead>
+                            <tr>
+                                <th>Herramienta/Método</th>
+                                <th>Tipo</th>
+                                <th>Capacidades Clave (Docs Académicos)</th>
+                                <th>Rendimiento (OmniDocBench)</th>
+                                <th>Fecha</th>
+                                <th>Código Abierto/Comercial</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>ÉCLAIR</td>
+                                <td>Sistema SOTA</td>
+                                <td>Precisión orden lectura; extracción datos alta calidad; compresión diseño</td>
+                                <td>SOTA en DROBS; competitivo OCR, diseño, extracción</td>
+                                <td>arXiv 2025</td>
+                                <td>No especificado</td>
+                            </tr>
+                            <tr>
+                                <td>OmniDocBench</td>
+                                <td>Benchmark</td>
+                                <td>Evaluación integral; 9 tipos docs; anotaciones alta calidad</td>
+                                <td>Permite evaluación detallada componentes</td>
+                                <td>arXiv 2024</td>
+                                <td>No especificado</td>
+                            </tr>
+                            <tr>
+                                <td>GPT-4o</td>
+                                <td>VLM General</td>
+                                <td>Extracción texto, fórmulas, tablas; multimodal</td>
+                                <td>TextEdit:0.144, FormulaCDM:72.8, TableTEDS:72.0</td>
+                                <td>2024</td>
+                                <td>Comercial</td>
+                            </tr>
+                            <tr>
+                                <td>Qwen2-VL-72B</td>
+                                <td>VLM General</td>
+                                <td>Extracción texto, fórmulas, tablas; multimodal</td>
+                                <td>TextEdit:0.096, FormulaCDM:82.2, TableTEDS:76.8</td>
+                                <td>2024</td>
+                                <td>Código Abierto</td>
+                            </tr>
+                             <tr>
+                                <td>MinerU</td>
+                                <td>Pipeline</td>
+                                <td>Buen rendimiento texto, fórmulas, tablas</td>
+                                <td>TextEdit:0.061, FormulaCDM:57.3, TableTEDS:78.6</td>
+                                <td>2024</td>
+                                <td>No especificado</td>
+                            </tr>
+                            <tr>
+                                <td>Mathpix</td>
+                                <td>Pipeline</td>
+                                <td>Fuerte en fórmulas, tablas</td>
+                                <td>TextEdit:0.105, FormulaCDM:62.7, TableTEDS:77.0</td>
+                                <td>2024</td>
+                                <td>Comercial</td>
+                            </tr>
+                             <tr>
+                                <td>Nougat</td>
+                                <td>VLM Experto</td>
+                                <td>Diseñado para extracción texto docs académicos</td>
+                                <td>TextEdit:0.365, FormulaCDM:15.1, TableTEDS:39.9</td>
+                                <td>2023</td>
+                                <td>Código Abierto</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="proceso" class="content-section">
+            <h2 class="text-3xl font-semibold text-green-700 mb-6">Diseño del Proceso de Generación Automatizada de Cursos</h2>
+            <p class="mb-6 text-lg">Un sistema de generación de cursos de vanguardia implica una orquestación cuidadosa de componentes. Haz clic en cada fase para ver detalles.</p>
+            <div class="space-y-4">
+                <div class="flowchart-step bg-white p-4 rounded-lg shadow" data-details="details-fase1">
+                    <h3 class="text-xl font-semibold text-green-600">Fase 1: Extracción e Indexación de Contexto</h3>
+                    <p class="text-sm text-neutral-500">Ingesta de datos y construcción de Grafo de Conocimiento.</p>
+                    <div id="details-fase1" class="flowchart-details mt-2 pt-2 border-t border-green-200">
+                        <ul class="list-disc list-inside text-neutral-700 space-y-1">
+                            <li><strong>Análisis PDF de Alta Fidelidad:</strong> Usar ÉCLAIR, GPT-4o, Qwen2-VL para extraer texto, tablas, figuras, fórmulas.</li>
+                            <li><strong>Chunking Semánticamente Consciente:</strong> Dividir por secciones/subsecciones (enfoque SLG).</li>
+                            <li><strong>Construcción de Grafo de Conocimiento (KG):</strong> Usar Amazon Neptune GraphRAG Toolkit o LlamaIndex GraphRAG.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="flowchart-step bg-white p-4 rounded-lg shadow" data-details="details-fase2">
+                    <h3 class="text-xl font-semibold text-green-600">Fase 2: Generación de Tabla de Contenidos</h3>
+                     <p class="text-sm text-neutral-500">Delinear la estructura del curso usando el KG.</p>
+                    <div id="details-fase2" class="flowchart-details mt-2 pt-2 border-t border-green-200">
+                        <ul class="list-disc list-inside text-neutral-700 space-y-1">
+                            <li><strong>Extracción Estructura Jerárquica del KG:</strong> LLM identifica relaciones temáticas.</li>
+                            <li><strong>Prompting Dirigido por Grafos:</strong> LLM genera TdC basada en temas y relaciones del KG.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="flowchart-step bg-white p-4 rounded-lg shadow" data-details="details-fase3">
+                    <h3 class="text-xl font-semibold text-green-600">Fase 3: Generación del Sílabo</h3>
+                    <p class="text-sm text-neutral-500">Detallar módulos, temas y objetivos.</p>
+                    <div id="details-fase3" class="flowchart-details mt-2 pt-2 border-t border-green-200">
+                        <ul class="list-disc list-inside text-neutral-700 space-y-1">
+                            <li><strong>Expansión de TdC a Módulos/Temas:</strong> Usar conocimiento relacional del KG.</li>
+                            <li><strong>Integración Objetivos de Aprendizaje/Evaluación:</strong> LLM infiere basado en contenido (potencialmente mejorado con ajuste fino tipo SimRAG).</li>
+                            <li><strong>Validación del Sílabo con KG:</strong> Asegurar consistencia con la fuente.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="flowchart-step bg-white p-4 rounded-lg shadow" data-details="details-fase4">
+                    <h3 class="text-xl font-semibold text-green-600">Fase 4: Creación del Contenido del Curso</h3>
+                    <p class="text-sm text-neutral-500">Generar el material detallado para cada sección.</p>
+                    <div id="details-fase4" class="flowchart-details mt-2 pt-2 border-t border-green-200">
+                        <ul class="list-disc list-inside text-neutral-700 space-y-1">
+                            <li><strong>Generación Aumentada por GraphRAG:</strong> Recuperación GraphRAG dirigida para cada tema.</li>
+                            <li><strong>Generación LLM con Fundamentación Fáctica:</strong> Prompting anti-alucinación, CoT, autocorrección.</li>
+                            <li><strong>Uso Eficiente de Tokens:</strong> LLMs contexto largo (Star Attention, LongCE).</li>
+                            <li><strong>Validación Post-Generación:</strong> Métricas como AlignScore.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusiones" class="content-section">
+            <h2 class="text-3xl font-semibold text-green-700 mb-6">Conclusiones y Perspectivas Futuras</h2>
+            <p class="mb-4 text-lg">La construcción de sistemas de generación de cursos de vanguardia requiere un cambio hacia enfoques estructuralmente conscientes como GraphRAG. La fidelidad fáctica, la eficiencia y la extracción robusta de datos son pilares fundamentales.</p>
+            
+            <div class="accordion bg-white p-4 rounded-lg shadow mb-6">
+                <button class="accordion-toggle flex justify-between items-center w-full text-left text-xl font-semibold text-green-600 py-2">
+                    <span>Recomendaciones Accionables</span>
+                    <span class="accordion-icon text-green-700 text-2xl">►</span>
+                </button>
+                <div class="accordion-content mt-2 text-neutral-700">
+                    <ol class="list-decimal list-inside space-y-2">
+                        <li>Priorizar arquitectura GraphRAG.</li>
+                        <li>Adoptar herramientas de análisis PDF multimodales.</li>
+                        <li>Implementar chunking semánticamente consciente.</li>
+                        <li>Optimizar LLMs para contextos largos (LongCE, Star Attention).</li>
+                        <li>Establecer marco de fundamentación fáctica robusto (KG, CoT, AlignScore).</li>
+                        <li>Explorar adaptación LLM (Agentes, Small Language Graph).</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="accordion bg-white p-4 rounded-lg shadow mb-6">
+                <button class="accordion-toggle flex justify-between items-center w-full text-left text-xl font-semibold text-green-600 py-2">
+                    <span>Limitaciones Actuales y Direcciones Futuras</span>
+                    <span class="accordion-icon text-green-700 text-2xl">►</span>
+                </button>
+                <div class="accordion-content mt-2 text-neutral-700">
+                    <p class="mb-2"><strong class="font-medium">Desafíos:</strong> Creación/mantenimiento de KGs, escalabilidad, integración con sistemas legados.</p>
+                    <p><strong class="font-medium">Futuro:</strong> Mejorar razonamiento LLM sobre KGs, construcción KG automatizada eficiente, nuevas arquitecturas grafo-generativas, evaluación calidad pedagógica, mitigación de sesgos.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-neutral-800 text-neutral-300 text-center p-6 mt-12">
+        <p>&copy; 2025 Explorador Interactivo de Alternativas RAG. Basado en el informe proporcionado.</p>
+    </footer>
+
+    <script>
+        const navLinks = document.querySelectorAll('.nav-link');
+        const contentSections = document.querySelectorAll('.content-section');
+        const accordions = document.querySelectorAll('.accordion-toggle');
+        const flowchartSteps = document.querySelectorAll('.flowchart-step');
+
+        function updateActiveSection() {
+            let hash = window.location.hash || '#inicio';
+            if (hash.startsWith('#')) {
+                hash = hash.substring(1);
+            }
+
+            let sectionFound = false;
+            contentSections.forEach(section => {
+                if (section.id === hash) {
+                    section.classList.add('active');
+                    sectionFound = true;
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            if (!sectionFound && contentSections.length > 0) {
+                 document.getElementById('inicio').classList.add('active'); // Fallback to 'inicio'
+            }
+
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === '#' + hash || (hash === 'inicio' && link.getAttribute('href') === '#inicio')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+             window.scrollTo(0, 0);
+        }
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                // e.preventDefault(); // Keep default behavior to update hash
+                const targetId = this.getAttribute('href').substring(1);
+                // updateActiveSection will be called by hashchange or on initial load
+            });
+        });
+        
+        window.addEventListener('hashchange', updateActiveSection);
+        document.addEventListener('DOMContentLoaded', () => {
+            updateActiveSection(); // Initial load
+
+            if (document.getElementById('enfoquesChart')) {
+                new Chart(document.getElementById('enfoquesChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['GraphRAG', 'Ajuste Fino (Fine-tuning)'],
+                        datasets: [{
+                            label: 'Fortaleza en Estructura y Relaciones',
+                            data: [90, 50],
+                            backgroundColor: 'rgba(22, 163, 74, 0.7)', // green-600
+                            borderColor: 'rgba(21, 128, 61, 1)', // green-700
+                            borderWidth: 1
+                        }, {
+                            label: 'Fortaleza en Conocimiento Implícito/Experto',
+                            data: [60, 85],
+                            backgroundColor: 'rgba(74, 222, 128, 0.7)', // green-400
+                            borderColor: 'rgba(22, 163, 74, 1)', // green-600
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: { display: true, text: 'Nivel de Fortaleza (Conceptual)'}
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += context.parsed.y + '%';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            },
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Comparación Conceptual: GraphRAG vs. Ajuste Fino'
+                            }
+                        },
+                        // Asegurar que las etiquetas largas se manejen bien
+                        // Chart.js v3+ maneja esto automáticamente mejor, pero para v2 puede ser necesario:
+                        // scales: { xAxes: [{ ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 } }] }
+                    }
+                });
+            }
+        });
+
+        accordions.forEach(accordion => {
+            accordion.addEventListener('click', () => {
+                const content = accordion.nextElementSibling;
+                const icon = accordion.querySelector('.accordion-icon');
+                content.style.display = content.style.display === 'block' ? 'none' : 'block';
+                icon.textContent = content.style.display === 'block' ? '▼' : '►';
+                accordion.classList.toggle('open');
+            });
+        });
+
+        flowchartSteps.forEach(step => {
+            step.addEventListener('click', () => {
+                const detailsId = step.getAttribute('data-details');
+                const detailsElement = document.getElementById(detailsId);
+                if (detailsElement) {
+                    detailsElement.style.display = detailsElement.style.display === 'block' ? 'none' : 'block';
+                }
+            });
+        });
+        
+        function makeTableInteractive(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            const headers = table.querySelectorAll('th');
+            const rows = table.querySelectorAll('tbody tr');
+
+            headers.forEach((th, colIndex) => {
+                th.style.cursor = 'pointer';
+                th.addEventListener('click', () => {
+                    rows.forEach(row => {
+                        row.querySelectorAll('td, th').forEach(cell => cell.classList.remove('highlight'));
+                        const cell = row.cells[colIndex];
+                        if (cell) cell.classList.add('highlight');
+                    });
+                });
+            });
+
+            rows.forEach(row => {
+                row.style.cursor = 'pointer';
+                row.addEventListener('click', () => {
+                    rows.forEach(r => r.querySelectorAll('td, th').forEach(cell => cell.classList.remove('highlight')));
+                    row.querySelectorAll('td, th').forEach(cell => cell.classList.add('highlight'));
+                });
+            });
+        }
+
+        makeTableInteractive('table1');
+        makeTableInteractive('table2');
+        makeTableInteractive('table3');
+
+    </script>
+</body>
+</html>
